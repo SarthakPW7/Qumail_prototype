@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quantum Email Demo (Professional UI)</title>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style>
+      /* Root Colors & Typography */
+      :root {
+        --primary: #3182ce;
+        --primary-hover: #2b6cb0;
+        --bg: #f0f4f8;
+        --card-bg: #ffffff;
+        --text-primary: #2d3748;
+        --text-secondary: #4a5568;
+        --shadow: rgba(0, 0, 0, 0.05);
+        --accent: #e6f0ff;
+        --border-radius: 12px;
+        --transition: 0.3s ease;
+      }
+
+      /* Reset */
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+        display: flex;
+        height: 100vh;
+        background: var(--bg);
+        color: var(--text-primary);
+        overflow: hidden;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 260px;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        border-right: 1px solid #e2e8f0;
+        transition: width var(--transition);
+        box-shadow: 2px 0 8px var(--shadow);
+      }
+
+      .sidebar.collapsed {
+        width: 80px;
+      }
+
+      .sidebar h2 {
+        font-size: 22px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--primary);
+      }
+
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .sidebar nav a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: var(--border-radius);
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all var(--transition);
+      }
+
+      .sidebar nav a i {
+        width: 20px;
+        text-align: center;
+      }
+
+      .sidebar nav a.active,
+      .sidebar nav a:hover {
+        background: var(--accent);
+        color: var(--primary);
+        transform: translateX(4px);
+      }
+
+      /* Main Area */
+      .main {
+        flex: 1;
+        padding: 25px;
+        overflow-y: auto;
+        position: relative;
+        transition: all var(--transition);
+      }
+
+      .user-info {
+        font-size: 14px;
+        margin-bottom: 20px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      /* Sections */
+      .section {
+        display: none;
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.4s ease;
+      }
+      .section.active {
+        display: block;
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* Messages */
+      .message {
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 8px var(--shadow);
+        padding: 16px;
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .message:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 14px var(--shadow);
+      }
+
+      .encrypted-text {
+        display: inline-block;
+        background: #222;
+        color: #0f0;
+        font-family: monospace;
+        font-size: 13px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        margin-top: 6px;
+        word-break: break-all;
+      }
+
+      .placeholder {
+        color: var(--text-secondary);
+        text-align: center;
+        padding: 30px 0;
+        font-style: italic;
+        font-size: 15px;
+      }
+
+      /* Compose */
+      #compose {
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--card-bg);
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 8px var(--shadow);
+        transition: all var(--transition);
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px 14px;
+        margin-bottom: 15px;
+        font-size: 15px;
+        border: 1px solid #cbd5e0;
+        border-radius: var(--border-radius);
+        outline: none;
+        background: #f9fafc;
+        transition: all var(--transition);
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+      }
+
+      button {
+        background: var(--primary);
+        color: #fff;
+        padding: 12px 18px;
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+
+      button:hover {
+        background: var(--primary-hover);
+        transform: scale(1.03);
+      }
+
+      button:active {
+        transform: scale(0.97);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          flex-direction: row;
+          overflow-x: auto;
+        }
+        .sidebar h2 {
+          display: none;
+        }
+        .sidebar nav {
+          flex-direction: row;
+        }
+        .sidebar nav a {
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <h2><i class="fas fa-envelope"></i> QuMail</h2>
+      <nav>
+        <a class="active"><i class="fas fa-inbox"></i> Inbox</a>
+        <a><i class="fas fa-paper-plane"></i> Sent</a>
+        <a><i class="fas fa-lock-open"></i> Receive</a>
+        <a><i class="fas fa-file-alt"></i> Drafts</a>
+      </nav>
+    </div>
+
+    <div class="main">
+      <div class="user-info">
+        <strong>Username:</strong> <span id="userDisplay"></span>
+      </div>
+
+      <!-- Sections -->
+      <div id="inboxSection" class="section active"><h3>Inbox</h3></div>
+      <div id="sentSection" class="section"><h3>Sent</h3></div>
+      <div id="receiveSection" class="section"><h3>Receive (Decrypt)</h3></div>
+      <div id="draftsSection" class="section"><h3>Drafts</h3></div>
+
+      <!-- Compose -->
+      <div id="compose">
+        <h3>Compose</h3>
+        <input type="text" id="to" placeholder="Send to (other username)" />
+        <input type="text" id="subject" placeholder="Subject" />
+        <textarea id="body" placeholder="Message"></textarea>
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <script>
+      // Same JS logic from previous implementation
+      let username = prompt("Enter your username (device1/device2)");
+      document.getElementById("userDisplay").innerText = username;
+      let userPassword = prompt("Set your decryption password:");
+
+      document.querySelectorAll(".sidebar nav a").forEach((link, idx) => {
+        link.addEventListener("click", () => {
+          document
+            .querySelectorAll(".sidebar nav a")
+            .forEach((l) => l.classList.remove("active"));
+          link.classList.add("active");
+
+          document
+            .querySelectorAll(".section")
+            .forEach((sec) => sec.classList.remove("active"));
+          document.querySelectorAll(".section")[idx].classList.add("active");
+
+          document.getElementById("compose").style.display =
+            link.textContent.includes("Inbox") ? "block" : "none";
+
+          renderInbox();
+          renderSent();
+          renderReceive();
+          renderDrafts();
+        });
+      });
+
+      function renderInbox() {
+        const inboxDiv = document.querySelector("#inboxSection");
+        inboxDiv.innerHTML = "<h3>Inbox</h3>";
+        const messages = JSON.parse(localStorage.getItem("messages") || "[]");
+        const inboxMsgs = messages.filter((m) => m.to === username);
+        if (inboxMsgs.length === 0) {
+          inboxDiv.innerHTML += `<div class="placeholder">No messages yet.</div>`;
+          return;
+        }
+        inboxMsgs.forEach((msg) => {
+          const div = document.createElement("div");
+          div.classList.add("message");
+          div.innerHTML = `<strong>From:</strong> ${msg.from}<br><strong>Subject:</strong> ${msg.subject}<br><span class="encrypted-text">${msg.body}</span>`;
+          inboxDiv.appendChild(div);
+        });
+      }
+      function renderSent() {
+        const sentDiv = document.querySelector("#sentSection");
+        sentDiv.innerHTML = "<h3>Sent</h3>";
+        const sentItems = JSON.parse(localStorage.getItem("sentItems") || "[]");
+        if (sentItems.length === 0) {
+          sentDiv.innerHTML += `<div class="placeholder">No sent messages yet.</div>`;
+          return;
+        }
+        sentItems.forEach((msg) => {
+          const div = document.createElement("div");
+          div.classList.add("message");
+          div.innerHTML = `
+      <strong>To:</strong> ${msg.to}<br>
+      <em>${new Date(msg.date).toLocaleString()}</em><br>
+      <span class="encrypted-text">${msg.body}</span>
+    `;
+          sentDiv.appendChild(div);
+        });
+      }
+
+      function renderReceive() {
+        const recvDiv = document.querySelector("#receiveSection");
+        recvDiv.innerHTML = "<h3>Receive (Decrypt)</h3>";
+        const messages = JSON.parse(localStorage.getItem("messages") || "[]");
+        const recvMsgs = messages.filter((m) => m.to === username);
+        if (recvMsgs.length === 0) {
+          recvDiv.innerHTML += `<div class="placeholder">No received messages.</div>`;
+          return;
+        }
+        recvMsgs.forEach((msg) => {
+          const div = document.createElement("div");
+          div.classList.add("message");
+          div.innerHTML = `<strong>From:</strong> ${msg.from}<br><strong>Subject:</strong> ${msg.subject}<br><span class="encrypted-text">${msg.body}</span><br><button class="decrypt-btn">Decrypt</button>`;
+          div.querySelector(".decrypt-btn").onclick = () => {
+            const enteredPassword = prompt("Enter decryption password:");
+            if (enteredPassword === userPassword) {
+              alert(`Decrypted message:\n\n${atob(msg.body)}`);
+            } else {
+              alert("❌ Wrong password! Message locked.");
+            }
+          };
+          recvDiv.appendChild(div);
+        });
+      }
+      function renderDrafts() {
+        const draftsDiv = document.querySelector("#draftsSection");
+        draftsDiv.innerHTML = "<h3>Drafts</h3>";
+        const drafts = JSON.parse(localStorage.getItem("drafts") || "[]");
+        if (drafts.length === 0) {
+          draftsDiv.innerHTML += `<div class="placeholder">No drafts saved.</div>`;
+          return;
+        }
+        drafts.forEach((draft, i) => {
+          const div = document.createElement("div");
+          div.classList.add("message");
+          div.innerHTML = `<strong>To:</strong> ${
+            draft.to || "(empty)"
+          }<br><strong>Subject:</strong> ${
+            draft.subject || "(empty)"
+          }<br><em>Auto-saved</em><p>${
+            draft.body || "(empty body)"
+          }</p><button onclick="loadDraft(${i})">Load Draft</button>`;
+          draftsDiv.appendChild(div);
+        });
+      }
+      function loadDraft(index) {
+        const drafts = JSON.parse(localStorage.getItem("drafts") || "[]");
+        if (drafts[index]) {
+          document.getElementById("to").value = drafts[index].to;
+          document.getElementById("subject").value = drafts[index].subject;
+          document.getElementById("body").value = drafts[index].body;
+          alert("Draft loaded into Compose.");
+        }
+      }
+      function autoSaveDraft() {
+        const to = document.getElementById("to").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const body = document.getElementById("body").value.trim();
+        const drafts = [{ to, subject, body }];
+        localStorage.setItem("drafts", JSON.stringify(drafts));
+        renderDrafts();
+      }
+      document.querySelectorAll("#to,#subject,#body").forEach((el) => {
+        el.addEventListener("input", autoSaveDraft);
+      });
+      function sendMessage() {
+        const to = document.getElementById("to").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const body = document.getElementById("body").value.trim();
+        if (!to || !subject || !body) return alert("All fields required!");
+        const encryptedBody = btoa(body);
+        const messages = JSON.parse(localStorage.getItem("messages") || "[]");
+        const sentItems = JSON.parse(localStorage.getItem("sentItems") || "[]");
+        messages.push({ from: username, to, subject, body: encryptedBody });
+        sentItems.push({
+          to,
+          subject,
+          body: encryptedBody,
+          date: new Date().toISOString(),
+        });
+        localStorage.setItem("messages", JSON.stringify(messages));
+        localStorage.setItem("sentItems", JSON.stringify(sentItems));
+        document.getElementById("to").value = "";
+        document.getElementById("subject").value = "";
+        document.getElementById("body").value = "";
+        localStorage.removeItem("drafts");
+        renderDrafts();
+        renderInbox();
+        renderSent();
+        renderReceive();
+      }
+      renderInbox();
+      renderSent();
+      renderReceive();
+      renderDrafts();
+      window.addEventListener("storage", (e) => {
+        if (["messages", "sentItems", "drafts"].includes(e.key)) {
+          renderInbox();
+          renderSent();
+          renderReceive();
+          renderDrafts();
+        }
+      });
+    </script>
+  </body>
+</html>
